@@ -348,7 +348,11 @@ building, looking for defects. It reported 1 possible blocker, 2 major and 9 min
 
 - Mac and iOS build. Full iOS suite on an iPad simulator: five failures, the same five that
   fail on `main` (three in `HorizontalMediaRailTests`, one each in `ArtworkURLTests` and
-  `ImageSizeCapabilityTests`). The tvOS app builds; its tests were not run.
+  `ImageSizeCapabilityTests`). That run predates the review fixes; the focused navigation
+  tests (81) pass after them.
+- tvOS did not build until the Mac sidebar layout was moved under an explicit macOS check
+  (it sat in the `#else` of an iOS check). Mac, iOS, and tvOS now build at every branch in
+  the chain. The tvOS app was not run, and its tests were not run.
 - Seen working on the Mac: sidebar, Search and highlight, profile menu, charcoal on every
   page, hero selection and auto-advance, card sizes and grid, series and movie detail,
   season selection, More menu, player sidebar hide and restore, Settings pages, window
