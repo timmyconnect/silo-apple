@@ -98,14 +98,20 @@ None — the Constitution Check has no violations.
 
 ## PR split (one concern each)
 
-1. `feat(macos): list every library in a grouped sidebar` — US1 plus the grouping, Search,
-   and highlight half of US2 (they share the new List). Files: MacSidebarSections,
-   MacSidebar, ContentView, LibrariesTabView, SiloTheme, tests.
-2. `feat(macos): move profile to the sidebar and drop duplicate page chrome` — the rest of
-   US2. Files: MacSidebar (profile row), TabTopBarActions, ContentView (remove toggle env).
-3. `feat(macos): charcoal page and sidebar canvas` — US3. Files: Colors, ViewExtensions,
-   SettingsBackdrop, SettingsView, InterfaceCustomizationView,
-   OpenSourceAcknowledgementsView, DownloadsView, MacSidebar (background).
+Each pull request is one local branch. They form a chain: every branch builds on the one
+before it, because later changes use theme tokens and navigation state the earlier ones add.
+
+| # | Branch | Story | Concern |
+|---|---|---|---|
+| 1 | `mac/1-sidebar-shell` | US1–3 | Grouped sidebar, profile row, no duplicate page chrome, charcoal shell |
+| 2 | `mac/2-sidebar-clearance` | US6 (part) | Detail pages and the scrolling header clear of the sidebar |
+| 3 | `mac/3-typography` | US5 (part) | Heading sizes, one-line poster titles, top-aligned rails |
+| 4 | `mac/4-featured-hero` | US4 | Featured sections as a hero |
+| 5 | `mac/5-card-sizes` | US5 | Card sizes, adaptive grids, caption tokens |
+| 6 | `mac/6-window-placement` | US9 | Window reopens on its last display |
+| 7 | `mac/7-player` | US7 | Player owns the window |
+| 8 | `mac/8-detail-layout` | US6 | Desktop detail layout, season cards, More button |
+| 9 | `mac/9-settings` | US8 | Settings column, grouped forms, monochrome rows and switches, Settings menu item |
 
 ## Owner decisions (2026-10-05)
 

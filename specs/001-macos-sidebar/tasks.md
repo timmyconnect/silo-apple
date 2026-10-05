@@ -45,7 +45,7 @@ Search is a destination; the highlight follows the page in view.
       `macSidebarLayout` use `MacSidebar` (depends on T006).
 - [x] T008 [US1] In `iosApp/Screens/Browse/LibrariesTabView.swift`, pass
       `canSwitch: false` on macOS so the picker is no longer offered (FR-008).
-- [ ] T009 [US1] `xcodegen generate`, build `SiloMac`, run the model tests, and do the
+- [x] T009 [US1] `xcodegen generate`, build `SiloMac`, run the model tests, and do the
       rendered check; confirm iPad and iPhone navigation is unchanged in a simulator.
 
 **Checkpoint**: PR 1 is shippable on its own.
@@ -85,9 +85,25 @@ or profile control of their own.
       `Screens/Settings/OpenSourceAcknowledgementsView.swift:91`.
 - [x] T018 [US3] Give `MacSidebar` the sidebar canvas and the split view the window
       container background.
-- [ ] T019 [US3] Rendered check on every page in quickstart US3 step 1, tune the two
+- [x] T019 [US3] Rendered check on every page in quickstart US3 step 1, tune the two
       colour values against `web-home-rows.webp`, open a detail page to confirm no content
       is newly hidden (research.md risk 2), and confirm iOS is unchanged.
+
+## Phase 5: Added during refinement (US4–US9)
+
+- [x] T020 [US4] Featured hero with title list and logo artwork (`macOS/MacFeaturedHero.swift`,
+      `macOS/MacTitleLogo.swift`, `Screens/Home/HomeView.swift`).
+- [x] T021 [US5] Mac card sizes, adaptive grids, caption and heading tokens
+      (`Theme/SiloTheme.swift`, `Theme/Typography.swift`, `Components/AdaptiveLayout.swift`).
+- [x] T022 [US6] Desktop detail header, season poster cards, More button
+      (`Screens/Detail/Phone/`).
+- [x] T023 [US7] Player: sidebar hidden, single header, centred transport (`macOS/PlayerView.swift`,
+      `macOS/MacPlayerControls.swift`).
+- [x] T024 [US8] Settings column, grouped forms, monochrome rows and switches, Settings menu
+      item (`Screens/Settings/`, `macOS/MacSettingsCommand.swift`).
+- [x] T025 [US9] Window placement (`macOS/MacWindowPlacement.swift`).
+- [ ] T026 Verify the items listed as not verified in spec.md.
+- [ ] T027 Independent review of the complete diff before any pull request is opened.
 
 ## Dependencies
 
