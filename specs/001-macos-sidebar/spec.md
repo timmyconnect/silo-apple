@@ -217,7 +217,8 @@ primary display when that display is gone.
 
 ### Edge Cases
 
-- A profile with no libraries: the "Libraries" group is omitted, not shown empty.
+- No library list known (a profile with none, or nothing cached and a failed fetch): the
+  group shows one "Libraries" row, whose page loads the list and reports the empty state.
 - A profile with more libraries than fit: the sidebar scrolls; the profile row stays pinned.
 - A library is removed or access is revoked while its page is open: the row disappears and
   the app moves to Home.
@@ -326,6 +327,22 @@ primary display when that display is gone.
 - Colours (`#1A1A1C` canvas, `#121214` sidebar) are estimates from web captures.
 - Pushed pages still show "Silo" as their window title.
 - iPhone, iPad, and Apple TV still draw featured sections as rows.
+
+## Independent review (2026-10-05)
+
+A separate reviewer read the complete `main..mac/9-settings` diff through git, without
+building, looking for defects. It reported 1 possible blocker, 2 major and 9 minor findings.
+
+- Fixed: Settings from the menu could be pushed over the player; the custom switch had no
+  accessible name; the hero's Play opened the detail page for a series; the hero's index
+  could go stale after a reload and did not pause for VoiceOver; the search shortcut lived
+  only in the sidebar; window frame saving missed some resizes and could resize a
+  full-screen window; the sidebar could lose every way into libraries; the season row's
+  alignment change reached iOS; `MacTitleLogo` did not import Nuke (it built regardless).
+- Accepted, not changed: Settings… is enabled but inert before sign-in; a featured section
+  shown as a hero has no per-title context menu; the router's route mirror, the player's
+  sidebar restore, the hero's stepping, and window geometry have no unit tests (there is
+  no Mac test target); a few layout literals remain.
 
 ## Verification status (2026-10-05)
 
