@@ -49,6 +49,12 @@ extension SettingKey {
             return 11
         case .homeHideWatchedItems:
             return 12
+        case .requestsWatchlistAutoRequest:
+            return 15
+        case .uiTitleArt:
+            return 16
+        case .homeShowAdultInFeatured:
+            return 17
         case .catalogMetadataLanguage, .downloadsDefaultQuality, .downloadsKeepWatched,
              .downloadsWifiOnly, .navShowAudiobooks, .playbackAudioLanguage,
              .playbackAutoPlayNext, .playbackAutoPlayNextPreview, .playbackAutoSkipCredits,
