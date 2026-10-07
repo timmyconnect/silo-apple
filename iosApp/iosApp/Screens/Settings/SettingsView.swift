@@ -151,7 +151,7 @@ struct SettingsView: View {
     private var preferencesSection: some View {
         Section {
             NavigationLink {
-                GeneralSettingsView()
+                GeneralSettingsView(activeProfile: viewModel.activeProfile)
             } label: {
                 SettingsRowLabel(
                     title: "General",

@@ -24,6 +24,10 @@ struct UserProfile: Codable, Identifiable, Hashable {
     /// Preferred metadata language (ISO 639-1; `""`/nil = inherit the
     /// library default). Drives server-side overview/tagline translation.
     let preferredMetadataLanguage: String?
+    /// The household manager's certification ceiling (`max_content_rating`);
+    /// nil or empty means none. Optional so cached payloads written before
+    /// this field existed still decode.
+    let maxContentRating: String?
 
     init(
         id: String,
@@ -36,7 +40,8 @@ struct UserProfile: Codable, Identifiable, Hashable {
         subtitleLanguage: String? = nil,
         subtitleMode: String? = nil,
         showForcedSubtitles: Bool? = nil,
-        preferredMetadataLanguage: String? = nil
+        preferredMetadataLanguage: String? = nil,
+        maxContentRating: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -49,7 +54,16 @@ struct UserProfile: Codable, Identifiable, Hashable {
         self.subtitleMode = subtitleMode
         self.showForcedSubtitles = showForcedSubtitles
         self.preferredMetadataLanguage = preferredMetadataLanguage
+        self.maxContentRating = maxContentRating
     }
+
+    /// Whether the household manager has limited what this profile may watch,
+    /// so switches that would show adult titles read off and stay disabled.
+    /// The server enforces the limit; this only decides how the switch looks.
+    // ponytail: locks for any ceiling, including NC-17 or 18, which still
+    // admit adult titles. The app has no rating ladder; the upgrade path is a
+    // server-derived "admits adult titles" field on the profile.
+    var hasRatingLimit: Bool { isChild || !(maxContentRating ?? "").isEmpty }
 }
 
 // MARK: - Profile PIN

@@ -2,9 +2,9 @@ import XCTest
 @testable import Silo
 
 @MainActor
-final class AdvisoryAgePreferenceStoreTests: XCTestCase {
+final class ProfileSwitchSettingStoreTests: XCTestCase {
     private var identity: HTTPRequestIdentity?
-    private var transport: FakeAdvisoryAgePreferenceTransport!
+    private var transport: FakeProfileSwitchSettingTransport!
 
     private static let profileA = HTTPRequestIdentity(
         serverId: "server-1",
@@ -22,13 +22,18 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
         identity = Self.profileA
-        transport = FakeAdvisoryAgePreferenceTransport()
+        transport = FakeProfileSwitchSettingTransport()
     }
 
-    private func makeStore() -> AdvisoryAgePreferenceStore {
-        AdvisoryAgePreferenceStore(
+    private var savedCount = 0
+
+    private func makeStore() -> ProfileSwitchSettingStore {
+        ProfileSwitchSettingStore(
+            key: .catalogShowAdvisoryAge,
+            title: "Show Advisory Age",
             transport: transport,
-            requestIdentity: { [unowned self] in self.identity }
+            requestIdentity: { [unowned self] in self.identity },
+            onSaved: { [unowned self] in self.savedCount += 1 }
         )
     }
 
@@ -38,13 +43,14 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
         await store.refresh()
 
         XCTAssertTrue(store.isSupported)
-        XCTAssertTrue(store.showsAdvisoryAge)
+        XCTAssertTrue(store.isOn)
         XCTAssertEqual(transport.readIdentities, [Self.profileA])
 
-        await store.setShowsAdvisoryAge(false)
-        XCTAssertFalse(store.showsAdvisoryAge)
+        await store.setOn(false)
+        XCTAssertFalse(store.isOn)
         XCTAssertEqual(transport.writes, [.init(enabled: false, identity: Self.profileA)])
         XCTAssertFalse(store.isSaving)
+        XCTAssertEqual(savedCount, 1, "a confirmed save runs the saved hook once")
     }
 
     func testUnsupportedServerHidesSettingAndDoesNotReadOrWrite() async {
@@ -53,9 +59,9 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
         await store.refresh()
 
         XCTAssertFalse(store.isSupported)
-        XCTAssertFalse(store.showsAdvisoryAge)
+        XCTAssertFalse(store.isOn)
         XCTAssertTrue(transport.readIdentities.isEmpty)
-        await store.setShowsAdvisoryAge(true)
+        await store.setOn(true)
         XCTAssertTrue(transport.writes.isEmpty)
     }
 
@@ -66,11 +72,11 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
         let refresh = Task { await store.refresh() }
         await waitUntil { self.transport.readIdentities.count == 2 }
 
-        await store.setShowsAdvisoryAge(true)
+        await store.setOn(true)
         transport.readGate?.open()
         await refresh.value
 
-        XCTAssertTrue(store.showsAdvisoryAge)
+        XCTAssertTrue(store.isOn)
     }
 
     func testOlderUnsupportedResultCannotClearANewerSuccessfulToggle() async {
@@ -80,13 +86,13 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
         let refresh = Task { await store.refresh() }
         await waitUntil { self.transport.capabilityRequests == 2 }
 
-        await store.setShowsAdvisoryAge(true)
+        await store.setOn(true)
         transport.capabilities = .available(advisoryCapabilities(revision: 9))
         transport.capabilityGate?.open()
         await refresh.value
 
         XCTAssertTrue(store.isSupported)
-        XCTAssertTrue(store.showsAdvisoryAge)
+        XCTAssertTrue(store.isOn)
     }
 
     func testFailedWriteDoesNotDiscardConcurrentRefresh() async {
@@ -98,12 +104,12 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
         let refresh = Task { await store.refresh() }
         await waitUntil { self.transport.readIdentities.count == 2 }
 
-        await store.setShowsAdvisoryAge(true)
-        XCTAssertFalse(store.showsAdvisoryAge)
+        await store.setOn(true)
+        XCTAssertFalse(store.isOn)
         transport.readGate?.open()
         await refresh.value
 
-        XCTAssertTrue(store.showsAdvisoryAge)
+        XCTAssertTrue(store.isOn)
         XCTAssertFalse(store.isSaving)
     }
 
@@ -111,13 +117,13 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
         let store = makeStore()
         await store.refresh()
         transport.writeGate = AsyncTestGate()
-        let write = Task { await store.setShowsAdvisoryAge(true) }
+        let write = Task { await store.setOn(true) }
         await waitUntil { store.isSaving }
 
-        XCTAssertTrue(store.showsAdvisoryAge)
+        XCTAssertTrue(store.isOn)
         transport.writeGate?.open()
         await write.value
-        XCTAssertTrue(store.showsAdvisoryAge)
+        XCTAssertTrue(store.isOn)
         XCTAssertFalse(store.isSaving)
     }
 
@@ -126,13 +132,14 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
         await store.refresh()
         transport.writeError = SettingsAPIError.transport(description: "offline")
 
-        await store.setShowsAdvisoryAge(true)
+        await store.setOn(true)
 
-        XCTAssertFalse(store.showsAdvisoryAge)
+        XCTAssertFalse(store.isOn)
         XCTAssertEqual(store.writeError, "Couldn't save Show Advisory Age. Check the connection and try again.")
+        XCTAssertEqual(savedCount, 0, "a failed save must not run the saved hook")
         transport.writeError = nil
-        await store.setShowsAdvisoryAge(true)
-        XCTAssertTrue(store.showsAdvisoryAge)
+        await store.setOn(true)
+        XCTAssertTrue(store.isOn)
         XCTAssertNil(store.writeError)
     }
 
@@ -146,7 +153,7 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
         transport.effectiveValue = true
         await store.hydrateIfNeeded()
         XCTAssertTrue(store.isSupported)
-        XCTAssertTrue(store.showsAdvisoryAge)
+        XCTAssertTrue(store.isOn)
     }
 
     func testUnavailableSettingsRetryOnNextRead() async {
@@ -159,20 +166,20 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
         transport.effectiveValue = true
         await store.hydrateIfNeeded()
         XCTAssertTrue(store.isSupported)
-        XCTAssertTrue(store.showsAdvisoryAge)
+        XCTAssertTrue(store.isOn)
     }
 
     func testStaleValueIsReadAgainAfterForeground() async {
         let store = makeStore()
         await store.hydrateIfNeeded()
-        XCTAssertFalse(store.showsAdvisoryAge)
+        XCTAssertFalse(store.isOn)
 
         transport.effectiveValue = true
         await store.hydrateIfNeeded()
-        XCTAssertFalse(store.showsAdvisoryAge, "a hydrated value is reused until marked stale")
+        XCTAssertFalse(store.isOn, "a hydrated value is reused until marked stale")
         store.markStale()
         await store.hydrateIfNeeded()
-        XCTAssertTrue(store.showsAdvisoryAge)
+        XCTAssertTrue(store.isOn)
     }
 
     func testReadInFlightWhenMarkedStaleDoesNotCountAsFresh() async {
@@ -189,7 +196,7 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
         await store.hydrateIfNeeded()
 
         XCTAssertEqual(transport.readIdentities.count, 3)
-        XCTAssertTrue(store.showsAdvisoryAge)
+        XCTAssertTrue(store.isOn)
     }
 
     func testHydrateJoiningAStaleReadStartsAFreshOne() async {
@@ -230,20 +237,20 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
         let store = makeStore()
         await store.hydrateIfNeeded()
         transport.writeError = SettingsAPIError.transport(description: "timed out")
-        await store.setShowsAdvisoryAge(true)
-        XCTAssertFalse(store.showsAdvisoryAge)
+        await store.setOn(true)
+        XCTAssertFalse(store.isOn)
 
         // The PUT landed even though the client saw it fail.
         transport.effectiveValue = true
         await store.hydrateIfNeeded()
-        XCTAssertTrue(store.showsAdvisoryAge)
+        XCTAssertTrue(store.isOn)
     }
 
     func testWriteCompletionAfterClearCannotRestorePreviousProfileState() async {
         transport.writeGate = AsyncTestGate()
         let store = makeStore()
         await store.refresh()
-        let write = Task { await store.setShowsAdvisoryAge(true) }
+        let write = Task { await store.setOn(true) }
         await waitUntil { store.isSaving }
 
         store.clear()
@@ -251,7 +258,7 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
         transport.writeGate?.open()
         await write.value
 
-        XCTAssertFalse(store.showsAdvisoryAge)
+        XCTAssertFalse(store.isOn)
         XCTAssertFalse(store.isSupported)
         XCTAssertFalse(store.isSaving)
     }
@@ -269,7 +276,7 @@ final class AdvisoryAgePreferenceStoreTests: XCTestCase {
 }
 
 @MainActor
-private final class FakeAdvisoryAgePreferenceTransport: AdvisoryAgePreferenceTransport, @unchecked Sendable {
+private final class FakeProfileSwitchSettingTransport: ProfileSwitchSettingTransport, @unchecked Sendable {
     struct Write: Equatable {
         let enabled: Bool
         let identity: HTTPRequestIdentity
@@ -350,4 +357,24 @@ private func advisoryEffectiveResponse(_ enabled: Bool) throws -> EffectiveSetti
     ]
     let data = try JSONSerialization.data(withJSONObject: object)
     return try SettingsWireCoding.makeDecoder().decode(EffectiveSettingValuesResponse.self, from: data)
+}
+
+/// The rule that shows the Featured adult switch off and disabled.
+final class ProfileRatingLimitTests: XCTestCase {
+    private func profile(isChild: Bool = false, maxContentRating: String? = nil) -> UserProfile {
+        UserProfile(id: "p", name: "P", avatarEmoji: nil, hasPin: false, isChild: isChild,
+            maxContentRating: maxContentRating)
+    }
+
+    func testChildOrAnyCeilingIsLimited() {
+        XCTAssertTrue(profile(isChild: true).hasRatingLimit)
+        XCTAssertTrue(profile(maxContentRating: "PG-13").hasRatingLimit)
+        XCTAssertFalse(profile().hasRatingLimit)
+        XCTAssertFalse(profile(maxContentRating: "").hasRatingLimit)
+    }
+
+    func testProfileCachedBeforeTheCeilingFieldStillDecodes() throws {
+        let cached = Data(#"{"id":"p","name":"P","hasPin":false,"isChild":false,"isPrimary":true}"#.utf8)
+        XCTAssertFalse(try JSONDecoder().decode(UserProfile.self, from: cached).hasRatingLimit)
+    }
 }

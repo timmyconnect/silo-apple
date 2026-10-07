@@ -743,7 +743,8 @@ final class AuthService: @unchecked Sendable {
         // Overlay prefs are stored at profile scope (`ui.card_overlays`),
         // so the next profile must re-read them.
         OverlayPrefsStore.shared.clear()
-        AdvisoryAgePreferenceStore.shared.clear()
+        ProfileSwitchSettingStore.advisoryAge.clear()
+        ProfileSwitchSettingStore.featuredAdult.clear()
         // Profile's preferred subtitle language drives detail-page track
         // ordering; drop it so the next profile re-hydrates its own.
         ProfilePrefsStore.shared.clear()

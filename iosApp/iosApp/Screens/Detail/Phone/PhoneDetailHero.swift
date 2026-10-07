@@ -376,7 +376,7 @@ struct PhoneDetailHero<Actions: View, BelowOverview: View>: View {
     @ScaledMetric(relativeTo: .subheadline) private var overviewTextScale: CGFloat = 1
     @State private var availableWidth: CGFloat = 0
     @State private var showFullOverview = false
-    @ObservedObject private var advisoryAgePreference = AdvisoryAgePreferenceStore.shared
+    @ObservedObject private var advisoryAgePreference = ProfileSwitchSettingStore.advisoryAge
 
     var body: some View {
         Group {
@@ -865,7 +865,7 @@ struct PhoneDetailHero<Actions: View, BelowOverview: View>: View {
         var chips = [ratingChip].compactMap { value in
             value.flatMap { $0.isEmpty ? nil : $0 }
         }
-        if advisoryAgePreference.showsAdvisoryAge,
+        if advisoryAgePreference.isOn,
            let advisory = overlayData?.advisoryAgeBadgeLabel {
             chips.append(advisory)
         }

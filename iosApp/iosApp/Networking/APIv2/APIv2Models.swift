@@ -343,7 +343,8 @@ extension APIv2Profile {
         UserProfile(id: id, name: name, avatarEmoji: avatar.isEmpty ? nil : avatar,
             avatarImageUrl: avatarUrl, hasPin: hasPin, isChild: isChild, isPrimary: isPrimary,
             subtitleLanguage: subtitleLanguage, subtitleMode: subtitleMode,
-            showForcedSubtitles: showForcedSubtitles, preferredMetadataLanguage: preferredMetadataLanguage)
+            showForcedSubtitles: showForcedSubtitles, preferredMetadataLanguage: preferredMetadataLanguage,
+            maxContentRating: maxContentRating)
     }
 }
 

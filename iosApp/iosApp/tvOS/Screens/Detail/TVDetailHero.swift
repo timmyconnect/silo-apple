@@ -123,7 +123,7 @@ struct TVDetailHero<Actions: View, BelowSynopsis: View>: View {
     /// description-translation control). Pass `{ EmptyView() }` when there's
     /// nothing to show.
     @ViewBuilder let belowSynopsis: () -> BelowSynopsis
-    @ObservedObject private var advisoryAgePreference = AdvisoryAgePreferenceStore.shared
+    @ObservedObject private var advisoryAgePreference = ProfileSwitchSettingStore.advisoryAge
 
     @ViewBuilder
     var body: some View {
@@ -429,7 +429,7 @@ struct TVDetailHero<Actions: View, BelowSynopsis: View>: View {
         var chips = [ratingChip].compactMap { value in
             value.flatMap { $0.isEmpty ? nil : $0 }
         }
-        if advisoryAgePreference.showsAdvisoryAge,
+        if advisoryAgePreference.isOn,
            let advisory = overlayData?.advisoryAgeBadgeLabel {
             chips.append(advisory)
         }

@@ -96,7 +96,7 @@ struct IOSSettingsOverview: View {
             Section("Preferences") {
                 if matchesGeneral {
                     NavigationLink {
-                        GeneralSettingsView()
+                        GeneralSettingsView(activeProfile: viewModel.activeProfile)
                     } label: {
                         SettingsOverviewRow(
                             title: "General",

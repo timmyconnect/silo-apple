@@ -1071,7 +1071,8 @@ struct ContentView: View {
         #endif
         // Detail pages read this lazily, so the next one re-reads it
         // instead of every foreground paying for a request.
-        AdvisoryAgePreferenceStore.shared.markStale()
+        ProfileSwitchSettingStore.advisoryAge.markStale()
+        ProfileSwitchSettingStore.featuredAdult.markStale()
         Task { await refreshSessionStores(overlayPhase: "foreground_refresh") }
         #if os(iOS)
         Task {

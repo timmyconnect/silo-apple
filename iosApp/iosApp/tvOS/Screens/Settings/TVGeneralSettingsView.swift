@@ -14,7 +14,7 @@ struct TVGeneralSettingsPane: View {
     @State private var showsMenuEditor = false
     @State private var registry = ServerRegistry.shared
     @State private var librarySnapshot = MainTabLibrarySnapshot.cachedForCurrentAuthority()
-    @StateObject private var advisoryAgePreference = AdvisoryAgePreferenceStore.shared
+    @StateObject private var advisoryAgePreference = ProfileSwitchSettingStore.advisoryAge
     let activeProfile: UserProfile?
     let detailFocus: FocusState<TVSettingsDetailFocus?>.Binding
     let changePairedProfile: () -> Void
@@ -85,11 +85,11 @@ struct TVGeneralSettingsPane: View {
             if advisoryAgePreference.isSupported {
                 TVSettingsToggleRow(
                     title: "Show Advisory Age",
-                    isOn: advisoryAgePreference.showsAdvisoryAge
+                    isOn: advisoryAgePreference.isOn
                 ) {
                     Task {
-                        await advisoryAgePreference.setShowsAdvisoryAge(
-                            !advisoryAgePreference.showsAdvisoryAge
+                        await advisoryAgePreference.setOn(
+                            !advisoryAgePreference.isOn
                         )
                     }
                 }
