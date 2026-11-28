@@ -2,8 +2,6 @@ import SwiftUI
 
 extension Notification.Name {
     static let homeSectionsShouldRefresh = Notification.Name("homeSectionsShouldRefresh")
-    static let homeCustomizeRequested = Notification.Name("homeCustomizeRequested")
-    static let libraryCustomizeRequested = Notification.Name("libraryCustomizeRequested")
 }
 
 /// Main home screen. iOS/macOS render resume-first section rows on a flat
@@ -172,7 +170,10 @@ struct HomeView: View {
                         icon: "play.rectangle.on.rectangle",
                         title: AppLanguage.string(.homeEmpty, locale: locale),
                         subtitle: AppLanguage.string(.homeEmptyBody, locale: locale)
-                    )
+                    ) {
+                        customizeHomeButton
+                            .padding(.top, 4)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -206,12 +207,6 @@ struct HomeView: View {
                         router.switchProfile()
                     },
                     onSignOut: { router.signOutAndReset() },
-                    customizePageTitle: isCustomizingHome ? nil : AppLanguage.string(.homeCustomizeTitleHome, locale: locale),
-                    onCustomizePage: isCustomizingHome ? nil : {
-                        withAnimation(.spring(response: 0.36, dampingFraction: 0.86)) {
-                            isCustomizingHome = true
-                        }
-                    },
                     chromeScrollState: chromeScrollState
                 )
             }
@@ -254,14 +249,6 @@ struct HomeView: View {
         .onReceive(NotificationCenter.default.publisher(for: .homeSectionsShouldRefresh)) { _ in
             scheduleWatchStateRefresh()
         }
-        #if !os(tvOS)
-        .onReceive(NotificationCenter.default.publisher(for: .homeCustomizeRequested)) { _ in
-            guard !isCustomizingHome else { return }
-            withAnimation(.spring(response: 0.36, dampingFraction: 0.86)) {
-                isCustomizingHome = true
-            }
-        }
-        #endif
         .onReceive(NotificationCenter.default.publisher(for: .titleMarkedNotInterested)) { note in
             guard let contentId = note.userInfo?[NotInterestedSync.contentIdKey] as? String else { return }
             viewModel.removeNotInterested(contentId: contentId)
@@ -360,27 +347,7 @@ struct HomeView: View {
                 // so customizing Home stays discoverable without cluttering the top bar.
                 HStack {
                     Spacer(minLength: 0)
-                    Button {
-                        withAnimation(.spring(response: 0.36, dampingFraction: 0.86)) {
-                            isCustomizingHome = true
-                        }
-                    } label: {
-                        Label(.homeCustomizeTitleHome, systemImage: "slider.horizontal.3")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Color.siloSecondaryText)
-                            .padding(.horizontal, 18)
-                            .padding(.vertical, 10)
-                            .background(
-                                Capsule()
-                                    .fill(Color.white.opacity(0.07))
-                                    .overlay(
-                                        Capsule()
-                                            .strokeBorder(Color.white.opacity(0.10), lineWidth: 0.75)
-                                    )
-                            )
-                            .contentShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
+                    customizeHomeButton
                     Spacer(minLength: 0)
                 }
                 .padding(.top, 8)
@@ -391,6 +358,30 @@ struct HomeView: View {
             .padding(.bottom, HomeFeedMetrics.bottomRunway)
         }
         .reportsPageChromeScroll(to: chromeScrollState)
+    }
+
+    private var customizeHomeButton: some View {
+        Button {
+            withAnimation(.spring(response: 0.36, dampingFraction: 0.86)) {
+                isCustomizingHome = true
+            }
+        } label: {
+            Label(.homeCustomizeTitleHome, systemImage: "slider.horizontal.3")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.siloSecondaryText)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule()
+                        .fill(Color.white.opacity(0.07))
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(Color.white.opacity(0.10), lineWidth: 0.75)
+                        )
+                )
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
     }
 
     /// The displayed rows in feed order. The Mac draws the first featured

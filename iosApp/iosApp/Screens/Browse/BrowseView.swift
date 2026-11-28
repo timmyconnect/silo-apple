@@ -712,7 +712,10 @@ struct LibraryRecommendedView: View {
                         icon: "rectangle.stack.fill",
                         title: AppLanguage.string(.libraryNoRecommendations, locale: locale),
                         subtitle: AppLanguage.string(.libraryNoRecommendedRowsBody, locale: locale)
-                    )
+                    ) {
+                        customizeRowsButton
+                            .padding(.top, 4)
+                    }
                 }
                 #else
                 if !viewModel.sections.isEmpty {
@@ -765,17 +768,6 @@ struct LibraryRecommendedView: View {
             }
             Task { await viewModel.loadSections(libraryId: libraryId, mediaScope: mediaScope) }
         }
-        #if !os(tvOS)
-        .onReceive(NotificationCenter.default.publisher(for: .libraryCustomizeRequested)) { note in
-            guard let requestedId = note.object as? Int, requestedId == libraryId else { return }
-            if libraryEditor == nil {
-                libraryEditor = HomeSectionsEditorModel(scope: .library(libraryId))
-            }
-            withAnimation(.spring(response: 0.36, dampingFraction: 0.86)) {
-                isCustomizing = true
-            }
-        }
-        #endif
     }
 
     private var content: some View {
@@ -804,30 +796,7 @@ struct LibraryRecommendedView: View {
                 #if !os(tvOS)
                 HStack {
                     Spacer(minLength: 0)
-                    Button {
-                        if libraryEditor == nil {
-                            libraryEditor = HomeSectionsEditorModel(scope: .library(libraryId))
-                        }
-                        withAnimation(.spring(response: 0.36, dampingFraction: 0.86)) {
-                            isCustomizing = true
-                        }
-                    } label: {
-                        Label(.homeCustomizeRowsButton, systemImage: "slider.horizontal.3")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Color.siloSecondaryText)
-                            .padding(.horizontal, 18)
-                            .padding(.vertical, 10)
-                            .background(
-                                Capsule()
-                                    .fill(Color.white.opacity(0.07))
-                                    .overlay(
-                                        Capsule()
-                                            .strokeBorder(Color.white.opacity(0.10), lineWidth: 0.75)
-                                    )
-                            )
-                            .contentShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
+                    customizeRowsButton
                     Spacer(minLength: 0)
                 }
                 .padding(.top, 8)
@@ -841,6 +810,35 @@ struct LibraryRecommendedView: View {
         .environment(\.browseLibraryId, libraryId)
         .environment(\.browseMediaScope, mediaScope)
     }
+
+    #if !os(tvOS)
+    private var customizeRowsButton: some View {
+        Button {
+            if libraryEditor == nil {
+                libraryEditor = HomeSectionsEditorModel(scope: .library(libraryId))
+            }
+            withAnimation(.spring(response: 0.36, dampingFraction: 0.86)) {
+                isCustomizing = true
+            }
+        } label: {
+            Label(.homeCustomizeRowsButton, systemImage: "slider.horizontal.3")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.siloSecondaryText)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule()
+                        .fill(Color.white.opacity(0.07))
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(Color.white.opacity(0.10), lineWidth: 0.75)
+                        )
+                )
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+    #endif
 
     private var scopeNotice: some View {
         VStack(spacing: SiloTheme.smallPadding) {

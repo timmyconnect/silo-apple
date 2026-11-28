@@ -383,12 +383,6 @@ final class AppRouter {
     /// Active detail-owned sheets (such as Add to Collection) that must finish
     /// dismissing before `refitItemDetail()` reconstructs the presentation.
     var itemDetailDeferredRefitCount = 0
-    /// Currently visible library Recommended tab that supports in-place
-    /// customization from the iPhone Duo status column.
-    var activeCustomizableLibrary: (id: Int, name: String)?
-    /// Owning `LibrariesTabView` token so hidden or disappearing instances
-    /// never overwrite or clear another visible instance's registration.
-    @ObservationIgnored var activeCustomizableLibraryOwner: UUID?
     /// The season and episode chosen on the open detail's series page, so a
     /// refit reopens it there rather than where it first opened.
     @ObservationIgnored private var itemDetailSeriesSelection: SeriesDetailContext?
